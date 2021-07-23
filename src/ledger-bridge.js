@@ -107,8 +107,11 @@ export default class BeaconLedgerBridge {
   }
 
   async getAddress(derivationPath = BeaconLedgerBridge.defaultDerivationPath) {
+    console.log('######## getAddress ########')
     const app = await this.createApp()
-    const result = await app.getAddress(derivationPath, true)
+    const result = await app.getAddress(derivationPath)
+    console.log('######## result ########', result)
+
     return result.publicKey
   }
 

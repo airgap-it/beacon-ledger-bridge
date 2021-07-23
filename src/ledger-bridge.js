@@ -1,7 +1,6 @@
 'use strict'
 
-import regeneratorRuntime from 'regenerator-runtime'
-import TransportU2F from '@ledgerhq/hw-transport-u2f'
+import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
 import Tezos from '@obsidiansystems/hw-app-xtz'
 
 const TARGET = 'BEACON-SDK-LEDGER-BRIDGE'
@@ -103,7 +102,7 @@ export default class BeaconLedgerBridge {
   }
 
   async createApp() {
-    const transport = await TransportU2F.create()
+    const transport = await TransportWebUSB.create()
     return new Tezos(transport)
   }
 

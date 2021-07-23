@@ -16,7 +16,7 @@ let Transport = (() => {
   let instance
 
   function init() {
-    let promise = TransportWebUSB.create()
+    let promise = TransportWebUSB.request()
     return {
       transport: () => {
         return promise

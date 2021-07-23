@@ -12,12 +12,38 @@ const Action = {
   GET_VERSION: 'getVersion'
 }
 
+let Transport = (() => {
+  let instance
+
+  function init() {
+    let promise = TransportWebUSB.create()
+    return {
+      transport: () => {
+        return promise
+      }
+    }
+  }
+
+  return {
+    getInstance: function () {
+      if (!instance) {
+        instance = init()
+      }
+      return instance
+    }
+  }
+})()
+
 export default class BeaconLedgerBridge {
   constructor() {
     this.addEventListeners()
   }
 
   addEventListeners() {
+    window.addEventListener('click', async () => {
+      Transport.getInstance()
+    })
+
     window.addEventListener(
       'message',
       (event) => {
@@ -101,17 +127,9 @@ export default class BeaconLedgerBridge {
     }
   }
 
-  async initTransport() {
-    console.log('INIT TRANSPORT')
-    document.getElementById('btn').click()
-    document.addEventListener('click', async () => {
-      return await TransportWebUSB.create()
-    })
-  }
-
   async createApp() {
-    const transport = await this.initTransport()
-    console.log('createApp', transport)
+    document.getElementById('btn').click()
+    const transport = await Transport.getInstance().transport()
     return new Tezos(transport)
   }
 

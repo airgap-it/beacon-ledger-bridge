@@ -1,7 +1,7 @@
 'use strict'
 
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
-import Tezos from '@obsidiansystems/hw-app-xtz'
+import Tezos from '@ledgerhq/hw-app-tezos'
 
 const TARGET = 'BEACON-SDK-LEDGER-BRIDGE'
 

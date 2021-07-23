@@ -102,7 +102,7 @@ export default class BeaconLedgerBridge {
   }
 
   async createApp() {
-    const transport = await TransportWebUSB.create()
+    const transport = await TransportWebUSB.request()
     return new Tezos(transport)
   }
 

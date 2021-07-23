@@ -102,6 +102,7 @@ export default class BeaconLedgerBridge {
   }
 
   async initTransport() {
+    console.log('INIT TRANSPORT')
     document.getElementById('btn').click()
     document.addEventListener('click', async () => {
       return await TransportWebUSB.create()
@@ -110,6 +111,7 @@ export default class BeaconLedgerBridge {
 
   async createApp() {
     const transport = await this.initTransport()
+    console.log('createApp', transport)
     return new Tezos(transport)
   }
 

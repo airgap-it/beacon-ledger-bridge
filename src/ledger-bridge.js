@@ -101,17 +101,21 @@ export default class BeaconLedgerBridge {
     }
   }
 
+  async initTransport() {
+    document.getElementById('btn').click()
+    document.addEventListener('click', async () => {
+      return await TransportWebUSB.create()
+    })
+  }
+
   async createApp() {
-    const transport = await TransportWebUSB.request()
+    const transport = await this.initTransport()
     return new Tezos(transport)
   }
 
   async getAddress(derivationPath = BeaconLedgerBridge.defaultDerivationPath) {
-    console.log('######## getAddress ########')
     const app = await this.createApp()
     const result = await app.getAddress(derivationPath)
-    console.log('######## result ########', result)
-
     return result.publicKey
   }
 

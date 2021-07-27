@@ -126,7 +126,7 @@ export default class BeaconLedgerBridge {
       try {
         await WebSocketTransport.check(BRIDGE_URL)
       } catch (_err) {
-        window.open('ledgerlive://bridge?appName=Spire')
+        window.open('ledgerlive://bridge?appName=Tezos Wallet')
         await this.checkLedgerLiveTransport()
       }
 

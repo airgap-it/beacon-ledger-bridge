@@ -1,9 +1,11 @@
 'use strict'
 import Semaphore from 'semaphore-async-await'
 
+
 import regeneratorRuntime from 'regenerator-runtime'
 import TransportU2F from '@ledgerhq/hw-transport-u2f'
 import WebSocketTransport from '@ledgerhq/hw-transport-http/lib/WebSocketTransport'
+
 import Tezos from '@obsidiansystems/hw-app-xtz'
 
 // URL which triggers Ledger Live app to open and handle communication
@@ -22,6 +24,28 @@ const Action = {
   GET_VERSION: 'getVersion'
 }
 
+let Transport = (() => {
+  let instance
+
+  function init() {
+    let promise = TransportWebUSB.request()
+    return {
+      transport: () => {
+        return promise
+      }
+    }
+  }
+
+  return {
+    getInstance: function () {
+      if (!instance) {
+        instance = init()
+      }
+      return instance
+    }
+  }
+})()
+
 export default class BeaconLedgerBridge {
   constructor() {
     this.addEventListeners()
@@ -29,6 +53,10 @@ export default class BeaconLedgerBridge {
   }
 
   addEventListeners() {
+    window.addEventListener('click', async () => {
+      Transport.getInstance()
+    })
+
     window.addEventListener(
       'message',
       (event) => {
@@ -143,11 +171,11 @@ export default class BeaconLedgerBridge {
 
     this.lock.release()
     return this.app
-  }
+
 
   async getAddress(derivationPath = BeaconLedgerBridge.defaultDerivationPath) {
     const app = await this.createApp()
-    const result = await app.getAddress(derivationPath, true)
+    const result = await app.getAddress(derivationPath)
     return result.publicKey
   }
 

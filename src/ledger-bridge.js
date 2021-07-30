@@ -1,7 +1,5 @@
 'use strict'
-import Semaphore from 'semaphore-async-await'
 
-import regeneratorRuntime from 'regenerator-runtime'
 import TransportU2F from '@ledgerhq/hw-transport-u2f'
 import WebSocketTransport from '@ledgerhq/hw-transport-http/lib/WebSocketTransport'
 import Tezos from '@obsidiansystems/hw-app-xtz'
@@ -113,8 +111,6 @@ export default class BeaconLedgerBridge {
   }
 
   async createApp(useLedgerLive = true) {
-    await this.lock.acquire()
-
     if (this.transport) {
       if (useLedgerLive) {
         try {
@@ -140,14 +136,13 @@ export default class BeaconLedgerBridge {
     }
 
     this.app = new Tezos(this.transport)
-
-    this.lock.release()
     return this.app
   }
 
   async getAddress(derivationPath = BeaconLedgerBridge.defaultDerivationPath) {
     const app = await this.createApp()
     const result = await app.getAddress(derivationPath, true)
+    this.resetTransport()
     return result.publicKey
   }
 
@@ -155,18 +150,21 @@ export default class BeaconLedgerBridge {
     const app = await this.createApp()
     // "03" prefix because it's an operation: https://github.com/obsidiansystems/ledger-app-tezos/blob/master/src/apdu_sign.c#L582
     const result = await app.signOperation(derivationPath, '03' + operation)
+    this.resetTransport()
     return result.signature
   }
 
   async signHash(hash, derivationPath = BeaconLedgerBridge.defaultDerivationPath) {
     const app = await this.createApp()
     const result = await app.signHash(derivationPath, hash)
+    this.resetTransport()
     return result.signature
   }
 
   async getVersion() {
     const app = await this.createApp()
     const result = await app.getVersion()
+    this.resetTransport()
     return result
   }
 
@@ -181,6 +179,12 @@ export default class BeaconLedgerBridge {
           throw new Error('Ledger transport check timeout')
         }
       })
+  }
+
+  async resetTransport() {
+    if (this.transport) {
+      this.transport.close()
+    }
   }
 }
 

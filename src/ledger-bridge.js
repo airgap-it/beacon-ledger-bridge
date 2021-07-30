@@ -1,4 +1,5 @@
 'use strict'
+import Semaphore from 'semaphore-async-await'
 
 import regeneratorRuntime from 'regenerator-runtime'
 import TransportU2F from '@ledgerhq/hw-transport-u2f'
@@ -24,6 +25,7 @@ const Action = {
 export default class BeaconLedgerBridge {
   constructor() {
     this.addEventListeners()
+    this.lock = new Semaphore(1)
   }
 
   addEventListeners() {
@@ -111,6 +113,8 @@ export default class BeaconLedgerBridge {
   }
 
   async createApp(useLedgerLive = true) {
+    await this.lock.acquire()
+
     if (this.transport) {
       if (useLedgerLive) {
         try {
@@ -137,6 +141,7 @@ export default class BeaconLedgerBridge {
 
     this.app = new Tezos(this.transport)
 
+    this.lock.release()
     return this.app
   }
 

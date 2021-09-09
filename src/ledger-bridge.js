@@ -138,9 +138,14 @@ export default class BeaconLedgerBridge {
   }
 
   async createApp(useLedgerLive = true) {
+    console.log('################ createApp ################', this.transport)
     if (this.transport) {
+      console.log('################ 0 ################')
+
       if (useLedgerLive) {
         try {
+          console.log('################ 1 ################')
+
           await WebSocketTransport.check(BRIDGE_URL)
           return this.app
         } catch (_err) {}
@@ -151,25 +156,44 @@ export default class BeaconLedgerBridge {
 
     if (useLedgerLive) {
       try {
+        console.log('################ 2 ################')
         await WebSocketTransport.check(BRIDGE_URL)
       } catch (_err) {
+        console.log('################ 3 ################')
         window.open('ledgerlive://bridge?appName=Tezos Wallet')
         await this.checkLedgerLiveTransport()
       }
+      console.log('################ 4 ################')
 
       this.transport = await WebSocketTransport.open(BRIDGE_URL)
     } else {
       this.transport = await TransportU2F.create()
     }
+    console.log('################ 5 ################')
 
     this.app = new Tezos(this.transport)
+<<<<<<< Updated upstream
+=======
+    console.log('################ 6 ################')
+
+>>>>>>> Stashed changes
     return this.app
+  }
+
+  async closeBridge() {
+    if (this.transport) {
+      return this.transport.close()
+    }
   }
 
   async getAddress(derivationPath = BeaconLedgerBridge.defaultDerivationPath) {
     const app = await this.createApp()
     const result = await app.getAddress(derivationPath, true)
+<<<<<<< Updated upstream
     this.resetTransport()
+=======
+    this.closeBridge()
+>>>>>>> Stashed changes
     return result.publicKey
   }
 
@@ -177,21 +201,33 @@ export default class BeaconLedgerBridge {
     const app = await this.createApp()
     // "03" prefix because it's an operation: https://github.com/obsidiansystems/ledger-app-tezos/blob/master/src/apdu_sign.c#L582
     const result = await app.signOperation(derivationPath, '03' + operation)
+<<<<<<< Updated upstream
     this.resetTransport()
+=======
+    this.closeBridge()
+>>>>>>> Stashed changes
     return result.signature
   }
 
   async signHash(hash, derivationPath = BeaconLedgerBridge.defaultDerivationPath) {
     const app = await this.createApp()
     const result = await app.signHash(derivationPath, hash)
+<<<<<<< Updated upstream
     this.resetTransport()
+=======
+    this.closeBridge()
+>>>>>>> Stashed changes
     return result.signature
   }
 
   async getVersion() {
     const app = await this.createApp()
     const result = await app.getVersion()
+<<<<<<< Updated upstream
     this.resetTransport()
+=======
+    this.closeBridge()
+>>>>>>> Stashed changes
     return result
   }
 

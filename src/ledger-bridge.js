@@ -1,9 +1,11 @@
 'use strict'
 
+import regeneratorRuntime from 'regenerator-runtime'
 import TransportU2F from '@ledgerhq/hw-transport-u2f'
 import WebSocketTransport from '@ledgerhq/hw-transport-http/lib/WebSocketTransport'
-
 import Tezos from '@obsidiansystems/hw-app-xtz'
+const TransportWebHID = require('@ledgerhq/hw-transport-webhid').default
+// const Tezos = require('@ledgerhq/hw-app-xtz').default
 
 // URL which triggers Ledger Live app to open and handle communication
 const BRIDGE_URL = 'ws://localhost:8435'
@@ -21,39 +23,12 @@ const Action = {
   GET_VERSION: 'getVersion'
 }
 
-let Transport = (() => {
-  let instance
-
-  function init() {
-    let promise = TransportWebUSB.request()
-    return {
-      transport: () => {
-        return promise
-      }
-    }
-  }
-
-  return {
-    getInstance: function () {
-      if (!instance) {
-        instance = init()
-      }
-      return instance
-    }
-  }
-})()
-
 export default class BeaconLedgerBridge {
   constructor() {
     this.addEventListeners()
-    this.lock = new Semaphore(1)
   }
 
   addEventListeners() {
-    window.addEventListener('click', async () => {
-      Transport.getInstance()
-    })
-
     window.addEventListener(
       'message',
       (event) => {
@@ -138,62 +113,40 @@ export default class BeaconLedgerBridge {
   }
 
   async createApp(useLedgerLive = true) {
-    console.log('################ createApp ################', this.transport)
-    if (this.transport) {
-      console.log('################ 0 ################')
+    // if (this.transport) {
+    //   if (useLedgerLive) {
+    //     try {
+    //       await WebSocketTransport.check(BRIDGE_URL)
+    //       return this.app
+    //     } catch (_err) {}
+    //   } else {
+    //     return this.app
+    //   }
+    // }
 
-      if (useLedgerLive) {
-        try {
-          console.log('################ 1 ################')
+    // if (useLedgerLive) {
+    //   try {
+    //     await WebSocketTransport.check(BRIDGE_URL)
+    //   } catch (_err) {
+    //     window.open('ledgerlive://bridge?appName=Tezos Wallet')
+    //     await this.checkLedgerLiveTransport()
+    //   }
 
-          await WebSocketTransport.check(BRIDGE_URL)
-          return this.app
-        } catch (_err) {}
-      } else {
-        return this.app
-      }
+    //   this.transport = await WebSocketTransport.open(BRIDGE_URL)
+    // } else {
+    //   this.transport = await TransportU2F.create()
+    // }
+
+    if (!this.app) {
+      this.app = new Tezos(await TransportWebHID.create())
     }
 
-    if (useLedgerLive) {
-      try {
-        console.log('################ 2 ################')
-        await WebSocketTransport.check(BRIDGE_URL)
-      } catch (_err) {
-        console.log('################ 3 ################')
-        window.open('ledgerlive://bridge?appName=Tezos Wallet')
-        await this.checkLedgerLiveTransport()
-      }
-      console.log('################ 4 ################')
-
-      this.transport = await WebSocketTransport.open(BRIDGE_URL)
-    } else {
-      this.transport = await TransportU2F.create()
-    }
-    console.log('################ 5 ################')
-
-    this.app = new Tezos(this.transport)
-<<<<<<< Updated upstream
-=======
-    console.log('################ 6 ################')
-
->>>>>>> Stashed changes
     return this.app
-  }
-
-  async closeBridge() {
-    if (this.transport) {
-      return this.transport.close()
-    }
   }
 
   async getAddress(derivationPath = BeaconLedgerBridge.defaultDerivationPath) {
     const app = await this.createApp()
     const result = await app.getAddress(derivationPath, true)
-<<<<<<< Updated upstream
-    this.resetTransport()
-=======
-    this.closeBridge()
->>>>>>> Stashed changes
     return result.publicKey
   }
 
@@ -201,33 +154,18 @@ export default class BeaconLedgerBridge {
     const app = await this.createApp()
     // "03" prefix because it's an operation: https://github.com/obsidiansystems/ledger-app-tezos/blob/master/src/apdu_sign.c#L582
     const result = await app.signOperation(derivationPath, '03' + operation)
-<<<<<<< Updated upstream
-    this.resetTransport()
-=======
-    this.closeBridge()
->>>>>>> Stashed changes
     return result.signature
   }
 
   async signHash(hash, derivationPath = BeaconLedgerBridge.defaultDerivationPath) {
     const app = await this.createApp()
     const result = await app.signHash(derivationPath, hash)
-<<<<<<< Updated upstream
-    this.resetTransport()
-=======
-    this.closeBridge()
->>>>>>> Stashed changes
     return result.signature
   }
 
   async getVersion() {
     const app = await this.createApp()
     const result = await app.getVersion()
-<<<<<<< Updated upstream
-    this.resetTransport()
-=======
-    this.closeBridge()
->>>>>>> Stashed changes
     return result
   }
 
@@ -242,12 +180,6 @@ export default class BeaconLedgerBridge {
           throw new Error('Ledger transport check timeout')
         }
       })
-  }
-
-  async resetTransport() {
-    if (this.transport) {
-      this.transport.close()
-    }
   }
 }
 

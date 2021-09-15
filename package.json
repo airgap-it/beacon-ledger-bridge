@@ -18,9 +18,10 @@
     "webpack-merge": "^4.2.2"
   },
   "dependencies": {
+    "@ledgerhq/hw-app-tezos": "^6.6.1",
     "@ledgerhq/hw-transport-http": "^6.2.0",
     "@ledgerhq/hw-transport-u2f": "^5.12.0",
-
+    "@ledgerhq/hw-transport-webhid": "^6.4.1",
     "@obsidiansystems/hw-app-xtz": "^4.72.3",
     "regenerator-runtime": "^0.13.5"
   }

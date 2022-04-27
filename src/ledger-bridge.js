@@ -2,7 +2,15 @@
 
 import regeneratorRuntime from 'regenerator-runtime'
 import TransportU2F from '@ledgerhq/hw-transport-u2f'
+import WebSocketTransport from '@ledgerhq/hw-transport-http/lib/WebSocketTransport'
 import Tezos from '@obsidiansystems/hw-app-xtz'
+
+// URL which triggers Ledger Live app to open and handle communication
+const BRIDGE_URL = 'ws://localhost:8435'
+
+// Number of seconds to poll for Ledger Live and Tezos app opening
+const TRANSPORT_CHECK_LIMIT = 180
+const TRANSPORT_CHECK_DELAY = 1000
 
 const TARGET = 'BEACON-SDK-LEDGER-BRIDGE'
 
@@ -102,9 +110,34 @@ export default class BeaconLedgerBridge {
     }
   }
 
-  async createApp() {
-    const transport = await TransportU2F.create()
-    return new Tezos(transport)
+  async createApp(useLedgerLive = true) {
+    if (this.transport) {
+      if (useLedgerLive) {
+        try {
+          await WebSocketTransport.check(BRIDGE_URL)
+          return this.app
+        } catch (_err) {}
+      } else {
+        return this.app
+      }
+    }
+
+    if (useLedgerLive) {
+      try {
+        await WebSocketTransport.check(BRIDGE_URL)
+      } catch (_err) {
+        window.open('ledgerlive://bridge?appName=Tezos Wallet')
+        await this.checkLedgerLiveTransport()
+      }
+
+      this.transport = await WebSocketTransport.open(BRIDGE_URL)
+    } else {
+      this.transport = await TransportU2F.create()
+    }
+
+    this.app = new Tezos(this.transport)
+
+    return this.app
   }
 
   async getAddress(derivationPath = BeaconLedgerBridge.defaultDerivationPath) {
@@ -130,6 +163,19 @@ export default class BeaconLedgerBridge {
     const app = await this.createApp()
     const result = await app.getVersion()
     return result
+  }
+
+  async checkLedgerLiveTransport(i = 0) {
+    return WebSocketTransport.check(BRIDGE_URL)
+      .then(() => console.log('connected!'))
+      .catch(async () => {
+        await new Promise((r) => setTimeout(r, TRANSPORT_CHECK_DELAY))
+        if (i < TRANSPORT_CHECK_LIMIT) {
+          return this.checkLedgerLiveTransport(i + 1)
+        } else {
+          throw new Error('Ledger transport check timeout')
+        }
+      })
   }
 }
 
